@@ -44,65 +44,81 @@ describe ISBN do
     end
   end
   
-  describe '#ten' do
+  describe '#ten!' do
     it "should respond with a ten digit isbn" do
       ISBNS.each do |isbn|
+        ISBN.ten!(isbn[1]).must_equal isbn[2]
+        ISBN.ten!(isbn[0]).must_equal isbn[2]
         ISBN.ten(isbn[1]).must_equal isbn[2]
         ISBN.ten(isbn[0]).must_equal isbn[2]
       end
     end
 
     it "should rejects invalid isbn inputs" do
-      proc { ISBN.ten("9790879392788") }.must_raise ISBN::No10DigitISBNAvailable
-      proc { ISBN.ten("074324382") }.must_raise ISBN::InvalidISBNError
-      proc { ISBN.ten("") }.must_raise ISBN::InvalidISBNError
-      proc { ISBN.ten(nil) }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.ten!("9790879392788") }.must_raise ISBN::No10DigitISBNAvailable
+      proc { ISBN.ten!("074324382") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.ten!("") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.ten!(nil) }.must_raise ISBN::InvalidISBNError
       # invalid non-digits characters
-      proc { ISBN.ten("978074324382A") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.ten!("978074324382A") }.must_raise ISBN::InvalidISBNError
       # use \A instead of ^ in regular expressions
-      proc { ISBN.ten("978\n978571389") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.ten!("978\n978571389") }.must_raise ISBN::InvalidISBNError
       # incorrect checksum
-      proc { ISBN.ten("0820472671") }.must_raise ISBN::InvalidISBNError
-      proc { ISBN.ten("9780820472677") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.ten!("0820472671") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.ten!("9780820472677") }.must_raise ISBN::InvalidISBNError
+    end
+
+    it "should return nils for invalid isbn inputs" do
+      ISBN.ten("9790879392788").must_equal nil
     end
   end
 
-  describe '#thirteen' do
+  describe '#thirteen!' do
     it "should respond with a thirteen digit isbn" do
       ISBNS.each do |isbn|
+        ISBN.thirteen!(isbn[0]).must_equal isbn[3]
+        ISBN.thirteen!(isbn[1]).must_equal isbn[3]
         ISBN.thirteen(isbn[0]).must_equal isbn[3]
         ISBN.thirteen(isbn[1]).must_equal isbn[3]
       end
     end
 
     it "should rejects invalid isbns" do
-      proc { ISBN.thirteen("97908793927888") }.must_raise ISBN::InvalidISBNError
-      proc { ISBN.thirteen(nil) }.must_raise ISBN::InvalidISBNError
-      proc { ISBN.thirteen("") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.thirteen!("97908793927888") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.thirteen!(nil) }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.thirteen!("") }.must_raise ISBN::InvalidISBNError
       # invalid characters e.g. Amazon ASIN
-      proc { ISBN.thirteen("B000VH3XBA") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.thirteen!("B000VH3XBA") }.must_raise ISBN::InvalidISBNError
       # incorrect checksum
-      proc { ISBN.thirteen("0820472671") }.must_raise ISBN::InvalidISBNError
-      proc { ISBN.thirteen("9780820472677") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.thirteen!("0820472671") }.must_raise ISBN::InvalidISBNError
+      proc { ISBN.thirteen!("9780820472677") }.must_raise ISBN::InvalidISBNError
+    end
+
+    it "should return nil for invalid isbns" do
+      ISBN.thirteen("97908793927888").must_equal nil
     end
   end
   
   it "should convert a NEW isbn into USED" do
-    ISBN.as_used("9780820472676").must_equal "2900820472675"
-    ISBN.as_used("2900820472675").must_equal "2900820472675"
-    ISBN.as_used("9790879392788").must_equal "2910879392787"
-    ISBN.as_used("2910879392787").must_equal "2910879392787"
+    ISBN.as_used!("9780820472676").must_equal "2900820472675"
+    ISBN.as_used!("2900820472675").must_equal "2900820472675"
+    ISBN.as_used!("9790879392788").must_equal "2910879392787"
+    ISBN.as_used!("2910879392787").must_equal "2910879392787"
+    ISBN.as_used!("0820472670").must_equal "2900820472675"
     ISBN.as_used("0820472670").must_equal "2900820472675"
-    proc { ISBN.as_used("082047267") }.must_raise ISBN::InvalidISBNError
+    proc { ISBN.as_used!("082047267") }.must_raise ISBN::InvalidISBNError
+    ISBN.as_used("082047267").must_equal nil
   end
   
   it "should convert a USED isbn into NEW" do
-    ISBN.as_new("2900820472675").must_equal "9780820472676"
-    ISBN.as_new("2910879392787").must_equal "9790879392788"
-    ISBN.as_new("9780820472676").must_equal "9780820472676"
-    ISBN.as_new("9790879392788").must_equal "9790879392788"
+    ISBN.as_new!("2900820472675").must_equal "9780820472676"
+    ISBN.as_new!("2910879392787").must_equal "9790879392788"
+    ISBN.as_new!("9780820472676").must_equal "9780820472676"
+    ISBN.as_new!("9790879392788").must_equal "9790879392788"
+    ISBN.as_new!("0820472670").must_equal "0820472670"
     ISBN.as_new("0820472670").must_equal "0820472670"
-    proc { ISBN.as_new("082047267") }.must_raise ISBN::InvalidISBNError
+    proc { ISBN.as_new!("082047267") }.must_raise ISBN::InvalidISBNError
+    ISBN.as_new("082047267").must_equal nil
   end
   
   it "should test the validity of an isbn" do

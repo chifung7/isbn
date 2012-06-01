@@ -27,7 +27,7 @@ module ISBN
     end
   end
 
-  def ten(isbn)
+  def ten!(isbn)
     isbn, prefix, body, cksum = validate(isbn)
     return isbn if prefix.nil? # already an isbn10
     raise No10DigitISBNAvailable.new isbn if prefix == '979' or prefix == '291'
@@ -36,18 +36,32 @@ module ISBN
     body << (cksum10 == 10 ? 'X' : cksum10.to_s)
     return body
   end
+  alias :as_ten! :ten!
+
+  def ten(isbn)
+    ten!(isbn)
+  rescue
+    nil
+  end
   alias :as_ten :ten
-  
-  def thirteen(isbn)
+
+  def thirteen!(isbn)
     isbn, prefix, body, cksum = validate(isbn)
     return isbn if prefix
 
     isbn12 = '978' + body
     return isbn12 << isbn13_checksum(isbn12).to_s
   end
+  alias :as_thirteen! :thirteen!
+
+  def thirteen(isbn)
+    thirteen!(isbn)
+  rescue
+    nil
+  end
   alias :as_thirteen :thirteen
   
-  def as_used(isbn)
+  def as_used!(isbn)
     isbn, prefix, body, cksum = validate(isbn)
     return isbn if prefix == '290' or prefix == '291'
 
@@ -59,9 +73,16 @@ module ISBN
              end
     return isbn12 << isbn13_checksum(isbn12).to_s
   end
+  alias :used! :as_used!
+
+  def as_used(isbn)
+    as_used!(isbn)
+  rescue
+    nil
+  end
   alias :used :as_used
 
-  def as_new(isbn)
+  def as_new!(isbn)
     isbn, prefix, body, cksum = validate(isbn)
     return isbn if prefix.nil? or prefix == '978' or prefix == '979'
     isbn12 = case prefix
@@ -71,7 +92,13 @@ module ISBN
              end
     return isbn12 << isbn13_checksum(isbn12).to_s
   end
-  
+  alias :unused! :as_new!
+
+  def as_new(isbn)
+    as_new!(isbn)
+  rescue
+    nil
+  end
   alias :unused :as_new
 
   def valid?(isbn)
