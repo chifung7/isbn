@@ -7,9 +7,22 @@ module ISBN
   class No10DigitISBNAvailable < RuntimeError; end
   class InvalidSourceString < RuntimeError; end
 
-  def validate(isbn)
-    raise InvalidISBNError.new isbn unless isbn.is_a? ::String
-    isbn = isbn.delete("-")
+  private
+  def create_silence_method(name)
+    bang_method_name = name.to_s + '!'
+    define_method(name) do |isbn|
+      begin
+        ISBN.send(bang_method_name, isbn)
+      rescue
+        nil
+      end
+    end
+  end
+
+  public
+  def validate(isbn_orig)
+    raise InvalidISBNError.new isbn_orig unless isbn_orig.is_a? ::String
+    isbn = isbn_orig.delete("-")
 
     case isbn.size
     when 10 then
@@ -19,22 +32,20 @@ module ISBN
           return [isbn.upcase, nil, body, cksum.upcase]
         end
       end
-      raise InvalidISBNError.new isbn
     when 13 then
       if isbn =~ /\A(978|979|290|291)(\d{9})(\d)\z/
         prefix, body, cksum = $1, $2, $3
         return [isbn, prefix, body, cksum] if is_valid_isbn13?(isbn)
       end
-      raise InvalidISBNError.new isbn
-    else 
-      raise InvalidISBNError.new isbn
     end
+
+    raise InvalidISBNError.new isbn_orig
   end
 
-  def ten!(isbn)
-    isbn, prefix, body, cksum = validate(isbn)
+  def ten!(isbn_orig)
+    isbn, prefix, body, cksum = validate(isbn_orig)
     return isbn if prefix.nil? # already an isbn10
-    raise No10DigitISBNAvailable.new isbn if prefix == '979' or prefix == '291'
+    raise No10DigitISBNAvailable.new isbn_orig if prefix == '979' or prefix == '291'
 
     cksum10 = isbn10_checksum(body)
     body << (cksum10 == 10 ? 'X' : cksum10.to_s)
@@ -42,15 +53,11 @@ module ISBN
   end
   alias :as_ten! :ten!
 
-  def ten(isbn)
-    ten!(isbn)
-  rescue
-    nil
-  end
+  create_silence_method(:ten)
   alias :as_ten :ten
 
-  def thirteen!(isbn)
-    isbn, prefix, body, cksum = validate(isbn)
+  def thirteen!(isbn_orig)
+    isbn, prefix, body, cksum = validate(isbn_orig)
     return isbn if prefix
 
     isbn12 = '978' + body
@@ -58,51 +65,39 @@ module ISBN
   end
   alias :as_thirteen! :thirteen!
 
-  def thirteen(isbn)
-    thirteen!(isbn)
-  rescue
-    nil
-  end
+  create_silence_method(:thirteen)
   alias :as_thirteen :thirteen
   
-  def as_used!(isbn)
-    isbn, prefix, body, cksum = validate(isbn)
+  def as_used!(isbn_orig)
+    isbn, prefix, body, cksum = validate(isbn_orig)
     return isbn if prefix == '290' or prefix == '291'
 
     isbn12 = case prefix
              when '978' then '290' + body
              when '979' then '291' + body
              when nil then '290' + body
-             else raise ISBN::InvalidISBNError.new isbn
+             else raise ISBN::InvalidISBNError.new isbn_orig
              end
     return isbn12 << isbn13_checksum(isbn12).to_s
   end
   alias :used! :as_used!
 
-  def as_used(isbn)
-    as_used!(isbn)
-  rescue
-    nil
-  end
+  create_silence_method(:as_used)
   alias :used :as_used
 
-  def as_new!(isbn)
-    isbn, prefix, body, cksum = validate(isbn)
+  def as_new!(isbn_orig)
+    isbn, prefix, body, cksum = validate(isbn_orig)
     return isbn if prefix.nil? or prefix == '978' or prefix == '979'
     isbn12 = case prefix
              when '290' then '978' + body
              when '291' then '979' + body
-             else raise ISBN::InvalidISBNError.new isbn
+             else raise ISBN::InvalidISBNError.new isbn_orig
              end
     return isbn12 << isbn13_checksum(isbn12).to_s
   end
   alias :unused! :as_new!
 
-  def as_new(isbn)
-    as_new!(isbn)
-  rescue
-    nil
-  end
+  create_silence_method(:as_new)
   alias :unused :as_new
 
   def valid?(isbn)
@@ -168,5 +163,6 @@ module ISBN
     rem = (b + a).modulo(11)
     return rem == 0 ? 0 : 11 - rem
   end
+
 
 end
