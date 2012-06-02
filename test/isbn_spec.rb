@@ -69,7 +69,7 @@ describe ISBN do
     end
 
     it "should return nils for invalid isbn inputs" do
-      ISBN.ten("9790879392788").must_equal nil
+      ISBN.ten("9790879392788").must_be_nil
     end
   end
 
@@ -95,7 +95,7 @@ describe ISBN do
     end
 
     it "should return nil for invalid isbns" do
-      ISBN.thirteen("97908793927888").must_equal nil
+      ISBN.thirteen("97908793927888").must_be_nil
     end
   end
   
@@ -107,7 +107,7 @@ describe ISBN do
     ISBN.as_used!("0820472670").must_equal "2900820472675"
     ISBN.as_used("0820472670").must_equal "2900820472675"
     proc { ISBN.as_used!("082047267") }.must_raise ISBN::InvalidISBNError
-    ISBN.as_used("082047267").must_equal nil
+    ISBN.as_used("082047267").must_be_nil
   end
   
   it "should convert a USED isbn into NEW" do
@@ -118,7 +118,7 @@ describe ISBN do
     ISBN.as_new!("0820472670").must_equal "0820472670"
     ISBN.as_new("0820472670").must_equal "0820472670"
     proc { ISBN.as_new!("082047267") }.must_raise ISBN::InvalidISBNError
-    ISBN.as_new("082047267").must_equal nil
+    ISBN.as_new("082047267").must_be_nil
   end
   
   it "should test the validity of an isbn" do
