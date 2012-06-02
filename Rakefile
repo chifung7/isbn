@@ -1,5 +1,6 @@
 $:.unshift("lib") unless $:.include?("lib")
 require "isbn"
+require "isbn/string"
 
 require 'rake/gempackagetask'
 spec = eval(File.read("isbn.gemspec"))
@@ -8,7 +9,8 @@ Rake::GemPackageTask.new(spec).define
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << "test"
-  test.pattern = "test/**/*_test.rb"
+  #test.pattern = "test/**/*_test.rb"
+  test.test_files = FileList["test/**/*_test.rb"]
 end
 
 desc "publish to rubygems.org"
@@ -22,6 +24,7 @@ task :default => :test
 require 'rake/testtask'
 Rake::TestTask.new(:test) do |test|
   test.libs << 'test'
-  test.pattern = FileList['test/**/*_test.rb', 'test/**/*_spec.rb']
+  #test.pattern = FileList['test/**/*_test.rb', 'test/**/*_spec.rb']
+  test.test_files = FileList['test/**/*_test.rb', 'test/**/*_spec.rb']
   test.verbose = true
 end

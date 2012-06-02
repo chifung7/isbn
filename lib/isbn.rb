@@ -3,8 +3,12 @@ module ISBN
   
   VERSION = "2.0.7"
 
+  class InvalidISBNError < RuntimeError; end
+  class No10DigitISBNAvailable < RuntimeError; end
+  class InvalidSourceString < RuntimeError; end
+
   def validate(isbn)
-    raise InvalidISBNError.new isbn unless isbn.is_a? String
+    raise InvalidISBNError.new isbn unless isbn.is_a? ::String
     isbn = isbn.delete("-")
 
     case isbn.size
@@ -123,10 +127,6 @@ module ISBN
     raise InvalidSourceString unless match
     match.to_a.first
   end
-
-  class InvalidISBNError < RuntimeError; end
-  class No10DigitISBNAvailable < RuntimeError; end
-  class InvalidSourceString < RuntimeError; end
 
   private
   # http://en.wikipedia.org/wiki/International_Standard_Book_Number
