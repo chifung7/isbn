@@ -28,9 +28,7 @@ module ISBN
     when 10 then
       if isbn =~ /\A(\d{9})([\dxX])\z/
         body, cksum = $1, $2
-        if is_valid_isbn10?(isbn)
-          return [isbn.upcase, nil, body, cksum.upcase]
-        end
+        return [isbn.upcase, nil, body, cksum.upcase] if is_valid_isbn10?(isbn)
       end
     when 13 then
       if isbn =~ /\A(978|979|290|291)(\d{9})(\d)\z/
@@ -127,13 +125,17 @@ module ISBN
   # http://en.wikipedia.org/wiki/International_Standard_Book_Number
   def is_valid_isbn13?(isbn13)
     sum = 0
-    13.times { |i| sum += i.modulo(2)==0 ? isbn13[i].to_i : isbn13[i].to_i*3 }
+    #13.times { |i| sum += i.modulo(2)==0 ? isbn13[i].to_i : isbn13[i].to_i*3 }
+    0.step(12,2) { |i| sum += isbn13[i].to_i }
+    1.step(11,2) { |i| sum += isbn13[i].to_i*3 }
     0 == sum.modulo(10)
   end
   
   def isbn13_checksum(isbn12)
     sum = 0
-    12.times { |i| sum += i.modulo(2)==0 ? isbn12[i].to_i : isbn12[i].to_i*3 }
+    #12.times { |i| sum += i.modulo(2)==0 ? isbn12[i].to_i : isbn12[i].to_i*3 }
+    0.step(10,2) { |i| sum += isbn12[i].to_i }
+    1.step(11,2) { |i| sum += isbn12[i].to_i*3 }
     rem = sum.modulo(10)
     return rem == 0 ? 0 : 10 - rem
   end
@@ -144,8 +146,8 @@ module ISBN
         a += isbn10[i].to_i # Assumed already converted from ASCII to 0..9
         b += a
     end
-    if isbn10[9] == 'x' or isbn10[9] == 'X'
-      a += 10.to_i
+    if isbn10[9] == 'X' or isbn10[9] == 'x'
+      a += 10
     else
       a += isbn10[9].to_i
     end
