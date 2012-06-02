@@ -26,9 +26,9 @@ module ISBN
 
     case isbn.size
     when 10 then
-      if isbn =~ /\A(\d{9})([\dxX])\z/
+      if isbn =~ /\A(\d{9})([\dX])\z/
         body, cksum = $1, $2
-        return [isbn.upcase, nil, body, cksum.upcase] if is_valid_isbn10?(isbn)
+        return [isbn, nil, body, cksum] if is_valid_isbn10?(isbn)
       end
     when 13 then
       if isbn =~ /\A(978|979|290|291)(\d{9})(\d)\z/
@@ -146,7 +146,7 @@ module ISBN
         a += isbn10[i].to_i # Assumed already converted from ASCII to 0..9
         b += a
     end
-    if isbn10[9] == 'X' or isbn10[9] == 'x'
+    if isbn10[9] == 'X'
       a += 10
     else
       a += isbn10[9].to_i
